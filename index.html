@@ -518,7 +518,7 @@ function drawInstagram(alpha, st) {
   const grad = c.createLinearGradient(0, 0, SW, SH);
   grad.addColorStop(0, '#f9edce'); grad.addColorStop(0.5, '#c69a4c'); grad.addColorStop(1, '#f4dfab');
   c.fillStyle = grad; c.textAlign = 'center'; c.textBaseline = 'middle';
-  c.font = '600 74px "Cormorant Garamond", Georgia, serif'; c.fillText('LANCE STORE', SW/2, 260);
+  // Título superior removido para valorizar a chamada e o QR Code.
   c.font = '500 68px Jost, sans-serif'; c.fillStyle = '#fff7e9';
   c.fillText('Gostou dos nossos looks?', SW/2, 440, 990);
   c.font = '400 43px Jost, sans-serif';
