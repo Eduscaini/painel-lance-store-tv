@@ -203,7 +203,7 @@ details li { margin-bottom: 6px; }
 
         <fieldset class="group" id="photoFrameChooser">
           <legend>Moldura das fotos</legend>
-          <p class="hint">Escolha a cor do acabamento que aparecerá ao redor de cada foto no vídeo.</p>
+          <p class="hint">Escolha a cor da única borda aplicada às fotos no vídeo.</p>
           <div class="chips">
             <label class="chip"><input type="radio" name="photoFrame" value="white"><span><i class="sw" style="background:#ffffff"></i>Branca</span></label>
             <label class="chip"><input type="radio" name="photoFrame" value="champagne" checked><span><i class="sw" style="background:#d9c49a"></i>Champagne</span></label>
@@ -533,11 +533,9 @@ function drawScene(sc, lt, alpha, st) {
     const slide = getSlide(sc.photo, st);
     const z = st.zoom ? 1 + 0.05 * clamp(lt / (sc.dur + st.fade), 0, 1) : 1;
 
-    // Acabamento premium: margem preta externa, moldura branca encorpada,
-    // filete champagne interno e pequeno respiro entre moldura e fotografia.
-    const photo = { x: 80, y: 142, w: 920, h: 1635.56, r: 24 };
-    const outer = { x: 18, y: 32, w: 1044, h: 1856, r: 42 };
-    const accent = { x: 58, y: 103, w: 964, h: 1714, r: 34 };
+    // Acabamento simples: somente uma borda ao redor da fotografia.
+    // Mantém o fundo preto da tela, sem moldura externa, filete duplo ou sombra.
+    const photo = { x: 80, y: 142, w: 920, h: 1635.56, r: 18 };
     const roundedPath = (ctx, box) => {
       ctx.beginPath();
       ctx.moveTo(box.x + box.r, box.y);
@@ -557,7 +555,7 @@ function drawScene(sc, lt, alpha, st) {
     sctx.fillStyle = '#080808';
     sctx.fillRect(0, 0, SW, SH);
 
-    // Foto com zoom suave, recortada em cantos arredondados.
+    // Fotografia com cantos discretamente arredondados.
     sctx.save();
     roundedPath(sctx, photo);
     sctx.clip();
@@ -567,21 +565,10 @@ function drawScene(sc, lt, alpha, st) {
       photo.x - SW / 2, photo.y - SH / 2, photo.w, photo.h);
     sctx.restore();
 
-    // Sombra suave para separar a moldura do fundo preto.
-    sctx.save();
-    sctx.shadowColor = 'rgba(0,0,0,.72)';
-    sctx.shadowBlur = 26;
-    sctx.shadowOffsetY = 8;
-    roundedPath(sctx, outer);
-    sctx.strokeStyle = '#ffffff';
-    sctx.lineWidth = 30;
-    sctx.stroke();
-    sctx.restore();
-
-    // Filete champagne fino, sempre presente como detalhe interno premium.
-    roundedPath(sctx, accent);
-    sctx.strokeStyle = '#d9c49a';
-    sctx.lineWidth = 5;
+    // Uma única borda, escolhida no painel (branca ou champagne).
+    roundedPath(sctx, photo);
+    sctx.strokeStyle = st.photoFrame === 'white' ? '#ffffff' : '#d9c49a';
+    sctx.lineWidth = 16;
     sctx.stroke();
     sctx.restore();
     return;
