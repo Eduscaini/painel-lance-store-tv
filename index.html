@@ -189,11 +189,9 @@ details li { margin-bottom: 6px; }
             <input id="outFade" type="range" min="1" max="6" step="0.5" value="2.5"></div>
         </div>
 
-<fieldset class="group" id="logoChooser"><legend>Escolha a logo para este vídeo</legend><div class="logo-options">
-<label class="logo-option"><input type="radio" name="logoChoice" value="original" checked><img id="previewOriginal" alt="Logo original"><span>Original</span></label>
-<label class="logo-option"><input type="radio" name="logoChoice" value="gold"><img id="previewGold" alt="Logo preta e dourada"><span>Preto e dourado</span></label>
-<label class="logo-option"><input type="radio" name="logoChoice" value="km1"><img id="previewKm1" alt="Logo clássica Lance Store"><span>Clássica</span></label>
-</div><p class="hint">A opção escolhida aparece na abertura, nas fotos e no encerramento. Sem música.</p></fieldset>
+<fieldset class="group" id="logoChooser"><legend>Logomarca da loja</legend><div class="logo-options">
+<label class="logo-option"><input type="radio" name="logoChoice" value="km1" checked><img id="previewKm1" alt="Logo clássica Lance Store"><span>Clássica</span></label>
+</div><p class="hint">A logomarca clássica será usada na abertura, nas fotos e no encerramento. Sem música.</p></fieldset>
         <fieldset class="group">
           <legend>Fundo da logo</legend>
           <div class="chips">
@@ -222,18 +220,7 @@ details li { margin-bottom: 6px; }
           <label class="check"><input type="checkbox" id="zoom"><span>Zoom lento nas fotos</span></label>
         </fieldset>
 
-        <fieldset class="group">
-          <legend>Contato no final do vídeo</legend>
-          <label class="check" style="margin-top:0"><input type="checkbox" id="showWhats"><span>Mostrar o WhatsApp da loja</span></label>
-          <div class="field" style="margin-top:12px"><label for="whats">Número</label>
-            <input id="whats" class="txt" type="text" inputmode="tel" maxlength="24" value="(51) 99986-1592" autocomplete="off"></div>
-          <div class="row" style="margin-top:12px">
-            <label class="btn small" for="waIcon" style="cursor:pointer">Escolher ícone do WhatsApp</label>
-            <input class="sr" id="waIcon" type="file" accept="image/*">
-            <button class="btn small" type="button" id="waIconReset" hidden>Voltar ao balão simples</button>
-          </div>
-          <p class="hint" id="waIconHint"></p>
-        </fieldset>
+<!-- Seção de WhatsApp do encerramento removida conforme solicitado. -->
 
         <fieldset class="group" id="instagramChooser">
           <legend>Instagram da Lance Store — QR Code</legend>
@@ -287,6 +274,7 @@ details li { margin-bottom: 6px; }
           <p><span class="ok">Vídeo pronto.</span> <span id="doneInfo"></span></p>
           <div class="row">
             <button class="btn primary" type="button" id="btnSave">Salvar vídeo</button>
+            <button class="btn" type="button" id="btnUsbSave">Salvar diretamente no pendrive</button>
             <a class="btn" id="fallbackLink" hidden>Baixar vídeo</a>
           </div>
           <p class="hint" id="saveMsg" aria-live="polite"></p>
@@ -324,7 +312,6 @@ const SW = 1080, SH = 1920, FPS = 30;
 const BG = { black: '#0e0a05', champagne: '#f1e3c3', white: '#ffffff' };
 const KEY = 'lance-painel-v2';
 const TXT = { black: '#e2b45a', champagne: '#6a4a10', white: '#6a4a10' };
-const WA_HINT = 'Se você tiver o ícone oficial do WhatsApp em PNG, escolha aqui e ele aparece ao lado do número. Sem ele, uso um balão de conversa simples.';
 const $ = (id) => document.getElementById(id);
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const ease = (x) => { x = clamp(x, 0, 1); return x * x * (3 - 2 * x); };
@@ -343,22 +330,14 @@ const LOGOS = { original: LOGO_SRC, gold: 'data:image/webp;base64,UklGRqazAgBXRU
 const logo = new Image();
 let logoReady = false;
 logo.onload = () => { logoReady = true; draw(); };
-function setLogo(which) {
-  if (!LOGOS[which]) which = 'original';
+function setLogo() {
+  const selectedLogo = LOGOS.km1;
   logoReady = false;
-  logo.src = LOGOS[which];
-  $('mark').src = LOGOS[which];
-  try { localStorage.setItem('lance-logo-choice', which); } catch (e) {}
+  logo.src = selectedLogo;
+  $('mark').src = selectedLogo;
 }
-$('previewOriginal').src = LOGOS.original;
-$('previewGold').src = LOGOS.gold;
 $('previewKm1').src = LOGOS.km1;
-let initialLogo = 'original';
-try { initialLogo = localStorage.getItem('lance-logo-choice') || 'original'; } catch(e) {}
-const selectedLogo = document.querySelector('input[name="logoChoice"][value="' + initialLogo + '"]');
-if (selectedLogo) selectedLogo.checked = true;
-setLogo(initialLogo);
-document.querySelectorAll('input[name="logoChoice"]').forEach(r => r.addEventListener('change', () => { if (r.checked) setLogo(r.value); }));
+setLogo();
 
 const instaQR = new Image(); instaQR.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAhwAAAIcAQAAAACVhUrRAAADhElEQVR4nO2dTY7bMAyFH4vu5Rvk/sfqDagTsAtRIumkmMVkDKd6RmAkMvNBWhCk+COL4dtX//V9BkAIIYQQQgghhBBCCCGEEPIjEFnXgRg5ICLoMu4A0H2wCt9uOYQQch2k2bgAiIiPKNDMP1PsJPz+mRBCyKdBlh0xhYjYH4nvCjSTA3LAtAj/xEwIIeRzIaaQhw0PbaiPHECXMXLlTAgh5K6Q3y9HpZnM+3LYDEA/XuWD7rMcQgi5DALfuawtTLPTUwCmWDJj+1P+pfdZDiGEXA7pHjkDUnygmRxAM3nYcNXcYcvCb58JIYR8BsR9tmJsuiuFdbEZmrYu6GKAnYTfNhNCCPksiPtsOea8PLQipv4Z42Y2xOizEbIrJPY7vpHRmdlBKEsol29wyiB1h5AtISVWAJxTojk44PJaQgfUHUJ2hUzdSUrh/pgirAxwVh9LBQbUHUJ2hITu5MKbMpgM0FIlVzfaHUL2hSS7Y77fKTYlDboxApZTR90hZGNI1BVI01ksfRg8Um39sC42nqZrhazfNxNCCPksSNrg1IhBtkGxFUpWKUwP7Q4hO0JwcsxyUUEEClBDB60EEKg7hGwJSblRdaXI+pJjbvkvALjfIWRvSMmNlqRnTuLoFE4lB0np7rMcQgi5DFJ8tnN0GmF3lg1araPjTt0hZFdIiVHHF03+2+rfya4dc6OE7A6pcTbUYBpqQmeOhC9Hn42QfSG1902nTSmqMUWnX1eeUncI2RQy+3dGJnQ2VqMLmgKQ2a1j/cDqwh7Z0mjkuc9yCCHkMkiEy0pmR2esILXtnCrZ4r+0O4TsCEkx6tWwgxIfQA0jxHFty3Oj7hCyI6T0jZ7zOzoFdEpPFQNyw8J9lkMIIZdBSi2oNAMgMTJOmlJpNgpExx7HxaLS4D7LIYSQyyBP/TvrvspBtfz0q3G/Q8jmkOqzrXh1SvEgO2kaiVH6bIQQglfvQcBTSnRFCfystgd9NkJ2hvzjXNDikrnY8wEgrMkhhBCcX20QLz6Qh5nONlJFvI6n81xQQnaGvDjL3UZdgX8X62LDyozBpjPapm+dCSGE/CeQ8f4dd+HGq0PqSaG0O4TsDQm7E4qxtjxdbKR1ZqJniFk/6tEf91kOIYRcBpm6E0YE8DNzptbM+s/01ELsbTMhhJDPgoh9LfPV1e+zHEIIIYQQQgghhBBCCCGEkHX9BZ64/jRZc818AAAAAElFTkSuQmCC'; instaQR.onload = () => { if (!S.exporting) draw(); };
 const els = ['photoDur', 'fade', 'introDur', 'outHold', 'outFade'].reduce((o, k) => (o[k] = $(k), o), {});
@@ -367,7 +346,7 @@ function readSettings() {
     photoDur: +els.photoDur.value, fade: +els.fade.value, introDur: +els.introDur.value,
     outHold: +els.outHold.value, outFade: +els.outFade.value,
     zoom: $('zoom').checked, bg: radioVal('bg') || 'black', fit: radioVal('fit') || 'contain', photoBg: radioVal('photoBg') || 'original', rot: radioVal('rot') || 'cw',
-    showWhats: $('showWhats').checked, whats: $('whats').value.trim(),
+    showWhats: false, whats: '',
     showInstagram: $('showInstagram').checked, instagramDur: +$('instagramDur').value,
     showStore: $('showStore').checked, storeDur: +$('storeDur').value, storePhrase: $('storePhrase').value.trim(),
     storeA1: $('storeA1').value.trim(), storeA2: $('storeA2').value.trim(), storeWhats: $('storeWhats').value.trim()
@@ -380,8 +359,6 @@ function restoreSettings() {
     const s = JSON.parse(raw);
     ['photoDur', 'fade', 'introDur', 'outHold', 'outFade'].forEach((k) => { if (typeof s[k] === 'number') els[k].value = s[k]; });
     if (typeof s.zoom === 'boolean') $('zoom').checked = s.zoom;
-    if (typeof s.showWhats === 'boolean') $('showWhats').checked = s.showWhats;
-    if (typeof s.whats === 'string' && s.whats) $('whats').value = s.whats;
     if (typeof s.showInstagram === 'boolean') $('showInstagram').checked = s.showInstagram;
     if (typeof s.instagramDur === 'number') $('instagramDur').value = s.instagramDur;
     if (typeof s.showStore === 'boolean') $('showStore').checked = s.showStore;
@@ -799,6 +776,29 @@ async function exportVideo(test) {
   }
 }
 function clearResult() { if (S.resultUrl) { URL.revokeObjectURL(S.resultUrl); S.resultUrl = null; } S.result = null; }
+async function saveDirectToUSB() {
+  if (!S.result) return;
+  if (!('showSaveFilePicker' in window)) {
+    $('saveMsg').textContent = 'Este Chrome não disponibilizou a gravação direta. Use “Salvar vídeo” e escolha o pendrive na janela de salvamento.';
+    return;
+  }
+  try {
+    const handle = await window.showSaveFilePicker({
+      suggestedName: S.result.name,
+      types: [{ description: 'Vídeo MP4', accept: { 'video/mp4': ['.mp4'] } }]
+    });
+    const writable = await handle.createWritable();
+    await writable.write(S.result.blob);
+    await writable.close();
+    $('saveMsg').textContent = 'Vídeo gravado no local escolhido. Selecione o pendrive como destino na janela de salvamento.';
+  } catch (e) {
+    if (e && e.name === 'AbortError') {
+      $('saveMsg').textContent = 'Salvamento cancelado. Nenhum arquivo foi gravado.';
+    } else {
+      $('saveMsg').textContent = 'Não foi possível gravar nesse destino. Verifique se o pendrive está conectado e tente novamente.';
+    }
+  }
+}
 async function saveVideo() {
   if (!S.result) return;
   let dl = null;
@@ -823,35 +823,22 @@ const drop = $('drop');
 ['dragleave', 'drop'].forEach((n) => drop.addEventListener(n, (e) => { e.preventDefault(); drop.classList.remove('over'); }));
 drop.addEventListener('drop', (e) => { if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files); });
 $('clear').addEventListener('click', () => { if (S.exporting) return; S.photos = []; S.cache.clear(); refresh(); });
-document.querySelectorAll('.step input[type="range"], .step input[type="radio"], #photoBackgroundChooser input, #zoom, #showWhats, #whats, #showStore, #showInstagram, #instagramDur, #storePhrase, #storeA1, #storeA2, #storeWhats').forEach((el) => el.addEventListener('input', () => { stopPlay(); refresh(true); }));
-['showWhats', 'whats'].forEach((id) => $(id).addEventListener('input', seekOut));
+document.querySelectorAll('.step input[type="range"], .step input[type="radio"], #photoBackgroundChooser input, #zoom, #showStore, #showInstagram, #instagramDur, #storePhrase, #storeA1, #storeA2, #storeWhats').forEach((el) => el.addEventListener('input', () => { stopPlay(); refresh(true); }));
 ['showStore', 'storeDur', 'storePhrase', 'storeA1', 'storeA2', 'storeWhats'].forEach((id) => $(id).addEventListener('input', seekStore));
 $('instagramDur').addEventListener('input', () => { $('instagramDur-o').textContent = $('instagramDur').value.replace('.', ',') + ' s'; });
 $('previewInstagram').addEventListener('click', () => { if (!$('showInstagram').checked) { $('showInstagram').checked = true; refresh(true); } seekInstagram(); });
 ['showInstagram', 'instagramDur'].forEach(id => $(id).addEventListener('input', seekInstagram));
-$('waIcon').addEventListener('change', async (e) => {
-  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-  try {
-    const bmp = await createImageBitmap(f);
-    const sc = Math.min(1, 256 / Math.max(bmp.width, bmp.height));
-    const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(bmp.width * sc)); c.height = Math.max(1, Math.round(bmp.height * sc));
-    const x = c.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(bmp, 0, 0, c.width, c.height);
-    if (bmp.close) bmp.close();
-    S.waIcon = c; $('waIconReset').hidden = false; $('waIconHint').textContent = 'Ícone carregado.'; seekOut();
-  } catch (err) { $('waIconHint').textContent = 'Não consegui abrir esse arquivo. Use um PNG ou JPG.'; }
-});
-$('waIconReset').addEventListener('click', () => { S.waIcon = null; $('waIconReset').hidden = true; $('waIconHint').textContent = WA_HINT; seekOut(); });
 $('btnPlay').addEventListener('click', () => (S.playing ? stopPlay() : startPlay()));
 $('scrub').addEventListener('input', (e) => { stopPlay(); S.t = +e.target.value; draw(); });
 $('btnTest').addEventListener('click', () => exportVideo(true));
 $('btnFull').addEventListener('click', () => exportVideo(false));
+$('btnUsbSave').addEventListener('click', saveDirectToUSB);
 $('btnCancel').addEventListener('click', () => { S.cancel = true; });
 $('btnSave').addEventListener('click', saveVideo);
 
 if (!('VideoEncoder' in window)) $('support').hidden = false;
 restoreSettings();
-$('showWhats').checked = false; $('showStore').checked = false;
-$('waIconHint').textContent = WA_HINT;
+$('showStore').checked = false;
 S.photos = [];
 refresh();
 if (document.fonts && document.fonts.load) Promise.all([document.fonts.load('500 84px Jost'), document.fonts.load('600 96px "Cormorant Garamond"')]).then(() => draw()).catch(() => {});
