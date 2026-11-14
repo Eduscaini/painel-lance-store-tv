@@ -532,28 +532,56 @@ function drawScene(sc, lt, alpha, st) {
   if (sc.type === 'photo') {
     const slide = getSlide(sc.photo, st);
     const z = st.zoom ? 1 + 0.05 * clamp(lt / (sc.dur + st.fade), 0, 1) : 1;
-    sctx.save(); sctx.globalAlpha = alpha;
-    sctx.translate(SW / 2, SH / 2); sctx.scale(z, z);
-    sctx.drawImage(slide, -SW / 2, -SH / 2);
-    sctx.restore();
-    // Moldura discreta aplicada sobre a foto, com cantos arredondados.
-    const frameColor = st.photoFrame === 'white' ? '#ffffff' : '#d9c49a';
-    const inset = 18, radius = 28;
+
+    // Acabamento premium: margem preta externa, moldura branca encorpada,
+    // filete champagne interno e pequeno respiro entre moldura e fotografia.
+    const photo = { x: 80, y: 142, w: 920, h: 1635.56, r: 24 };
+    const outer = { x: 18, y: 32, w: 1044, h: 1856, r: 42 };
+    const accent = { x: 58, y: 103, w: 964, h: 1714, r: 34 };
+    const roundedPath = (ctx, box) => {
+      ctx.beginPath();
+      ctx.moveTo(box.x + box.r, box.y);
+      ctx.lineTo(box.x + box.w - box.r, box.y);
+      ctx.quadraticCurveTo(box.x + box.w, box.y, box.x + box.w, box.y + box.r);
+      ctx.lineTo(box.x + box.w, box.y + box.h - box.r);
+      ctx.quadraticCurveTo(box.x + box.w, box.y + box.h, box.x + box.w - box.r, box.y + box.h);
+      ctx.lineTo(box.x + box.r, box.y + box.h);
+      ctx.quadraticCurveTo(box.x, box.y + box.h, box.x, box.y + box.h - box.r);
+      ctx.lineTo(box.x, box.y + box.r);
+      ctx.quadraticCurveTo(box.x, box.y, box.x + box.r, box.y);
+      ctx.closePath();
+    };
+
     sctx.save();
-    sctx.globalAlpha = alpha * 0.98;
-    sctx.strokeStyle = frameColor;
-    sctx.lineWidth = 10;
-    sctx.beginPath();
-    sctx.moveTo(inset + radius, inset);
-    sctx.lineTo(SW - inset - radius, inset);
-    sctx.quadraticCurveTo(SW - inset, inset, SW - inset, inset + radius);
-    sctx.lineTo(SW - inset, SH - inset - radius);
-    sctx.quadraticCurveTo(SW - inset, SH - inset, SW - inset - radius, SH - inset);
-    sctx.lineTo(inset + radius, SH - inset);
-    sctx.quadraticCurveTo(inset, SH - inset, inset, SH - inset - radius);
-    sctx.lineTo(inset, inset + radius);
-    sctx.quadraticCurveTo(inset, inset, inset + radius, inset);
-    sctx.closePath();
+    sctx.globalAlpha = alpha;
+    sctx.fillStyle = '#080808';
+    sctx.fillRect(0, 0, SW, SH);
+
+    // Foto com zoom suave, recortada em cantos arredondados.
+    sctx.save();
+    roundedPath(sctx, photo);
+    sctx.clip();
+    sctx.translate(SW / 2, SH / 2);
+    sctx.scale(z, z);
+    sctx.drawImage(slide, -SW / 2, -SH / 2, SW, SH,
+      photo.x - SW / 2, photo.y - SH / 2, photo.w, photo.h);
+    sctx.restore();
+
+    // Sombra suave para separar a moldura do fundo preto.
+    sctx.save();
+    sctx.shadowColor = 'rgba(0,0,0,.72)';
+    sctx.shadowBlur = 26;
+    sctx.shadowOffsetY = 8;
+    roundedPath(sctx, outer);
+    sctx.strokeStyle = '#ffffff';
+    sctx.lineWidth = 30;
+    sctx.stroke();
+    sctx.restore();
+
+    // Filete champagne fino, sempre presente como detalhe interno premium.
+    roundedPath(sctx, accent);
+    sctx.strokeStyle = '#d9c49a';
+    sctx.lineWidth = 5;
     sctx.stroke();
     sctx.restore();
     return;
