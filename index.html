@@ -201,15 +201,6 @@ details li { margin-bottom: 6px; }
           </div>
         </fieldset>
 
-        <fieldset class="group" id="photoFrameChooser">
-          <legend>Moldura das fotos</legend>
-          <p class="hint">Escolha a cor da única borda aplicada às fotos no vídeo.</p>
-          <div class="chips">
-            <label class="chip"><input type="radio" name="photoFrame" value="white"><span><i class="sw" style="background:#ffffff"></i>Branca</span></label>
-            <label class="chip"><input type="radio" name="photoFrame" value="champagne" checked><span><i class="sw" style="background:#d9c49a"></i>Champagne</span></label>
-          </div>
-        </fieldset>
-
         <fieldset class="group" id="photoBackgroundChooser">
           <legend>Fundo das fotos no vídeo</legend>
           <p class="hint">A foto original nunca é recortada ou substituída. Escolha apenas como preencher eventuais espaços vazios.</p>
@@ -354,7 +345,7 @@ function readSettings() {
   return {
     photoDur: +els.photoDur.value, fade: +els.fade.value, introDur: +els.introDur.value,
     outHold: +els.outHold.value, outFade: +els.outFade.value,
-    zoom: $('zoom').checked, bg: radioVal('bg') || 'black', fit: radioVal('fit') || 'contain', photoBg: radioVal('photoBg') || 'original', photoFrame: radioVal('photoFrame') || 'champagne', rot: radioVal('rot') || 'cw',
+    zoom: $('zoom').checked, bg: radioVal('bg') || 'black', fit: radioVal('fit') || 'contain', photoBg: radioVal('photoBg') || 'original', rot: radioVal('rot') || 'cw',
     showWhats: false, whats: '',
     showInstagram: $('showInstagram').checked, instagramDur: +$('instagramDur').value,
     showStore: $('showStore').checked, storeDur: +$('storeDur').value, storePhrase: $('storePhrase').value.trim(),
@@ -373,7 +364,7 @@ function restoreSettings() {
     if (typeof s.showStore === 'boolean') $('showStore').checked = s.showStore;
     if (typeof s.storeDur === 'number') $('storeDur').value = s.storeDur;
     ['storePhrase', 'storeA1', 'storeA2', 'storeWhats'].forEach((k) => { if (typeof s[k] === 'string' && s[k]) $(k).value = s[k]; });
-    ['bg', 'fit', 'photoBg', 'photoFrame', 'rot'].forEach((n) => { const r = document.querySelector('input[name="' + n + '"][value="' + s[n] + '"]'); if (r) r.checked = true; });
+    ['bg', 'fit', 'photoBg', 'rot'].forEach((n) => { const r = document.querySelector('input[name="' + n + '"][value="' + s[n] + '"]'); if (r) r.checked = true; });
   } catch (e) {}
 }
 
@@ -532,44 +523,9 @@ function drawScene(sc, lt, alpha, st) {
   if (sc.type === 'photo') {
     const slide = getSlide(sc.photo, st);
     const z = st.zoom ? 1 + 0.05 * clamp(lt / (sc.dur + st.fade), 0, 1) : 1;
-
-    // Acabamento simples: somente uma borda ao redor da fotografia.
-    // Mantém o fundo preto da tela, sem moldura externa, filete duplo ou sombra.
-    const photo = { x: 80, y: 142, w: 920, h: 1635.56, r: 18 };
-    const roundedPath = (ctx, box) => {
-      ctx.beginPath();
-      ctx.moveTo(box.x + box.r, box.y);
-      ctx.lineTo(box.x + box.w - box.r, box.y);
-      ctx.quadraticCurveTo(box.x + box.w, box.y, box.x + box.w, box.y + box.r);
-      ctx.lineTo(box.x + box.w, box.y + box.h - box.r);
-      ctx.quadraticCurveTo(box.x + box.w, box.y + box.h, box.x + box.w - box.r, box.y + box.h);
-      ctx.lineTo(box.x + box.r, box.y + box.h);
-      ctx.quadraticCurveTo(box.x, box.y + box.h, box.x, box.y + box.h - box.r);
-      ctx.lineTo(box.x, box.y + box.r);
-      ctx.quadraticCurveTo(box.x, box.y, box.x + box.r, box.y);
-      ctx.closePath();
-    };
-
-    sctx.save();
-    sctx.globalAlpha = alpha;
-    sctx.fillStyle = '#080808';
-    sctx.fillRect(0, 0, SW, SH);
-
-    // Fotografia com cantos discretamente arredondados.
-    sctx.save();
-    roundedPath(sctx, photo);
-    sctx.clip();
-    sctx.translate(SW / 2, SH / 2);
-    sctx.scale(z, z);
-    sctx.drawImage(slide, -SW / 2, -SH / 2, SW, SH,
-      photo.x - SW / 2, photo.y - SH / 2, photo.w, photo.h);
-    sctx.restore();
-
-    // Uma única borda, escolhida no painel (branca ou champagne).
-    roundedPath(sctx, photo);
-    sctx.strokeStyle = st.photoFrame === 'white' ? '#ffffff' : '#d9c49a';
-    sctx.lineWidth = 16;
-    sctx.stroke();
+    sctx.save(); sctx.globalAlpha = alpha;
+    sctx.translate(SW / 2, SH / 2); sctx.scale(z, z);
+    sctx.drawImage(slide, -SW / 2, -SH / 2);
     sctx.restore();
     return;
   }
