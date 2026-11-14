@@ -201,6 +201,15 @@ details li { margin-bottom: 6px; }
           </div>
         </fieldset>
 
+        <fieldset class="group" id="photoFrameChooser">
+          <legend>Moldura das fotos</legend>
+          <p class="hint">Escolha a cor do acabamento que aparecerá ao redor de cada foto no vídeo.</p>
+          <div class="chips">
+            <label class="chip"><input type="radio" name="photoFrame" value="white"><span><i class="sw" style="background:#ffffff"></i>Branca</span></label>
+            <label class="chip"><input type="radio" name="photoFrame" value="champagne" checked><span><i class="sw" style="background:#d9c49a"></i>Champagne</span></label>
+          </div>
+        </fieldset>
+
         <fieldset class="group" id="photoBackgroundChooser">
           <legend>Fundo das fotos no vídeo</legend>
           <p class="hint">A foto original nunca é recortada ou substituída. Escolha apenas como preencher eventuais espaços vazios.</p>
@@ -345,7 +354,7 @@ function readSettings() {
   return {
     photoDur: +els.photoDur.value, fade: +els.fade.value, introDur: +els.introDur.value,
     outHold: +els.outHold.value, outFade: +els.outFade.value,
-    zoom: $('zoom').checked, bg: radioVal('bg') || 'black', fit: radioVal('fit') || 'contain', photoBg: radioVal('photoBg') || 'original', rot: radioVal('rot') || 'cw',
+    zoom: $('zoom').checked, bg: radioVal('bg') || 'black', fit: radioVal('fit') || 'contain', photoBg: radioVal('photoBg') || 'original', photoFrame: radioVal('photoFrame') || 'champagne', rot: radioVal('rot') || 'cw',
     showWhats: false, whats: '',
     showInstagram: $('showInstagram').checked, instagramDur: +$('instagramDur').value,
     showStore: $('showStore').checked, storeDur: +$('storeDur').value, storePhrase: $('storePhrase').value.trim(),
@@ -364,7 +373,7 @@ function restoreSettings() {
     if (typeof s.showStore === 'boolean') $('showStore').checked = s.showStore;
     if (typeof s.storeDur === 'number') $('storeDur').value = s.storeDur;
     ['storePhrase', 'storeA1', 'storeA2', 'storeWhats'].forEach((k) => { if (typeof s[k] === 'string' && s[k]) $(k).value = s[k]; });
-    ['bg', 'fit', 'photoBg', 'rot'].forEach((n) => { const r = document.querySelector('input[name="' + n + '"][value="' + s[n] + '"]'); if (r) r.checked = true; });
+    ['bg', 'fit', 'photoBg', 'photoFrame', 'rot'].forEach((n) => { const r = document.querySelector('input[name="' + n + '"][value="' + s[n] + '"]'); if (r) r.checked = true; });
   } catch (e) {}
 }
 
@@ -526,6 +535,26 @@ function drawScene(sc, lt, alpha, st) {
     sctx.save(); sctx.globalAlpha = alpha;
     sctx.translate(SW / 2, SH / 2); sctx.scale(z, z);
     sctx.drawImage(slide, -SW / 2, -SH / 2);
+    sctx.restore();
+    // Moldura discreta aplicada sobre a foto, com cantos arredondados.
+    const frameColor = st.photoFrame === 'white' ? '#ffffff' : '#d9c49a';
+    const inset = 18, radius = 28;
+    sctx.save();
+    sctx.globalAlpha = alpha * 0.98;
+    sctx.strokeStyle = frameColor;
+    sctx.lineWidth = 10;
+    sctx.beginPath();
+    sctx.moveTo(inset + radius, inset);
+    sctx.lineTo(SW - inset - radius, inset);
+    sctx.quadraticCurveTo(SW - inset, inset, SW - inset, inset + radius);
+    sctx.lineTo(SW - inset, SH - inset - radius);
+    sctx.quadraticCurveTo(SW - inset, SH - inset, SW - inset - radius, SH - inset);
+    sctx.lineTo(inset + radius, SH - inset);
+    sctx.quadraticCurveTo(inset, SH - inset, inset, SH - inset - radius);
+    sctx.lineTo(inset, inset + radius);
+    sctx.quadraticCurveTo(inset, inset, inset + radius, inset);
+    sctx.closePath();
+    sctx.stroke();
     sctx.restore();
     return;
   }
