@@ -45,7 +45,7 @@ body {
 }
 .wrap { max-width: 1120px; margin: 0 auto; }
 .top { display: flex; gap: 18px; align-items: center; margin-bottom: 26px; }
-.mark { width: 64px; height: 64px; flex: none; }
+.mark { width: 64px; height: 64px; flex: none; border-radius: 50%; object-fit: cover; overflow: hidden; }
 h1 { font: 600 clamp(30px, 5vw, 44px)/1.05 var(--font-display); margin: 0 0 6px; text-wrap: balance; }
 .lede { margin: 0; color: var(--muted); max-width: 60ch; }
 .layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 360px); gap: 28px; align-items: start; }
@@ -141,7 +141,7 @@ details li { margin-bottom: 6px; }
 .logo-option:has(input:checked) { border-color:var(--gold); background:var(--gold-soft); box-shadow:inset 0 0 0 1px var(--gold); }
 .logo-option:has(input:focus-visible) { outline:2px solid var(--gold); outline-offset:2px; }
 .logo-option input { accent-color:var(--gold); margin:0; }
-.logo-option img { width:72px; height:72px; max-width:100%; object-fit:contain; display:block; border-radius:8px; }
+.logo-option img { width:72px; height:72px; max-width:100%; object-fit:cover; display:block; border-radius:50%; overflow:hidden; }
 .logo-option span { overflow-wrap:anywhere; }
 @media(max-width:480px){.logo-options{gap:6px}.logo-option{padding:8px 4px}.logo-option img{width:58px;height:58px}}
 </style>
@@ -449,8 +449,17 @@ function getSlide(p, st) {
 function drawLogo(alpha, dy, w0) {
   if (!logoReady || alpha <= 0) return;
   const w = w0 || 820, h = w * logo.height / logo.width;
-  sctx.save(); sctx.globalAlpha = alpha;
-  sctx.drawImage(logo, (SW - w) / 2, (SH - h) / 2 + (dy || 0), w, h);
+  const x = (SW - w) / 2, y = (SH - h) / 2 + (dy || 0);
+
+  // As três versões da marca são circulares, mas algumas imagens têm
+  // pixels opacos nos quatro cantos. O recorte circular elimina o quadrado
+  // sem alterar o arquivo original nem a proporção da logomarca.
+  sctx.save();
+  sctx.globalAlpha = alpha;
+  sctx.beginPath();
+  sctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+  sctx.clip();
+  sctx.drawImage(logo, x, y, w, h);
   sctx.restore();
 }
 const hasContact = (st) => st.showWhats && st.whats.length > 0;
